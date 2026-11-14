@@ -1,0 +1,21 @@
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.env.*
+
+# Saved models
+*.pkl
+*.joblib
+
+# Original dataset
+linear_regression/hvstat_africa_data_v1.0.csv
