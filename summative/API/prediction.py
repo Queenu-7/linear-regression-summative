@@ -91,7 +91,7 @@ app = FastAPI(title="Crop Yield Prediction API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://my-service.onrender.com",
+        "https://crop-yield-api-ai2s.onrender.com",
         "http://localhost:5000",
         "http://127.0.0.1:5000"
     ],
