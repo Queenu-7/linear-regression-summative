@@ -206,6 +206,12 @@ class _PredictPageState extends State<PredictPage> {
           )
           .timeout(const Duration(seconds: 90));
 
+      debugPrint('SENT TO API: ${jsonEncode(body)}');
+
+      debugPrint('API STATUS: ${response.statusCode}');
+
+      debugPrint('API RESPONSE: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         predictedValue = data['predicted_yield_t_per_ha'].toString();

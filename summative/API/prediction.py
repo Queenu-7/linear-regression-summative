@@ -117,59 +117,105 @@ def predict(data: PredictionInput):
 def retrain(file: UploadFile = File(...)):
     global pipeline
 
-    if not file.filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Please upload a .csv file.")
+    # 1. Check uploaded file
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a .csv file."
+        )
 
     try:
         new_data = pd.read_csv(file.file)
     except Exception:
-        raise HTTPException(status_code=400, detail="Could not read the CSV file.")
+        raise HTTPException(
+            status_code=400,
+            detail="Could not read the CSV file."
+        )
 
+    # 2. Check required columns
     needed = FEATURES + [TARGET]
     missing = [col for col in needed if col not in new_data.columns]
 
     if missing:
-        raise HTTPException(status_code=400, detail=f"Missing columns: {missing}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing columns: {missing}"
+        )
 
-    new_data = new_data[needed].dropna()
+    # 3. Clean uploaded data
+    new_data = new_data[needed].copy()
+
+    for col in ["planting_month", "harvest_month", "harvest_year", "area", "yield"]:
+        new_data[col] = pd.to_numeric(new_data[col], errors="coerce")
+
+    new_data = new_data.dropna()
 
     new_data = new_data[
-        (new_data[TARGET] > 0) & (new_data[TARGET] <= 50)
-        & (new_data["area"] > 0) & (new_data["area"] <= MAX_AREA)
+        (new_data["yield"] > 0)
+        & (new_data["yield"] <= 50)
+        & (new_data["area"] > 0)
+        & (new_data["area"] <= MAX_AREA)
         & new_data["planting_month"].between(1, 12)
         & new_data["harvest_month"].between(1, 12)
+        & new_data["harvest_year"].between(MIN_YEAR, MAX_YEAR)
     ]
 
     if len(new_data) == 0:
-        raise HTTPException(status_code=400, detail="No valid rows found in the file.")
+        raise HTTPException(
+            status_code=400,
+            detail="No valid rows found in the uploaded CSV."
+        )
 
-    model = pipeline.named_steps["model"]
+    # 4. Load original training data
+    if not os.path.exists(TRAIN_PATH):
+        raise HTTPException(
+            status_code=500,
+            detail="Original training data not found."
+        )
 
-    if isinstance(model, SGDRegressor):
-
-        new_X = pipeline.named_steps["preprocess"].transform(new_data[FEATURES])
-        model.partial_fit(new_X, new_data[TARGET])
-
-        method = "partial_fit on the new rows"
-
-    else:
-
-        if not os.path.exists(TRAIN_PATH):
-            raise HTTPException(status_code=500, detail="Original training data not found.")
-
+    try:
         old_data = pd.read_csv(TRAIN_PATH)
-        combined = pd.concat([old_data, new_data], ignore_index=True)
+        combined = pd.concat(
+            [old_data[needed], new_data],
+            ignore_index=True
+        )
 
-        pipeline.fit(combined[FEATURES], combined[TARGET])
-        combined.to_csv(TRAIN_PATH, index=False)
+        # 5. Create a fresh model pipeline and retrain
+        from sklearn.base import clone
 
-        method = "refit on original data + new rows"
+        new_pipeline = clone(pipeline)
 
-    joblib.dump(pipeline, MODEL_PATH, compress=3)
+        new_pipeline.fit(
+            combined[FEATURES],
+            combined[TARGET]
+        )
 
-    return {
-        "message": "Model updated and saved successfully.",
-        "model_type": type(model).__name__,
-        "method": method,
-        "new_rows_used": len(new_data),
-    }
+        # 6. Save the newly trained model
+        temp_model_path = MODEL_PATH + ".tmp"
+        joblib.dump(new_pipeline, temp_model_path, compress=3)
+        os.replace(temp_model_path, MODEL_PATH)
+
+        # 7. Update training dataset
+        temp_data_path = TRAIN_PATH + ".tmp"
+        combined.to_csv(temp_data_path, index=False)
+        os.replace(temp_data_path, TRAIN_PATH)
+
+        # 8. Update active pipeline
+        pipeline = new_pipeline
+
+        return {
+            "message": "Model retrained and saved successfully.",
+            "model_type": type(new_pipeline.named_steps["model"]).__name__,
+            "method": "Full retraining on original data + new uploaded data",
+            "original_rows": len(old_data),
+            "new_rows_used": len(new_data),
+            "total_training_rows": len(combined)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Retraining failed: {str(e)}"
+        )
