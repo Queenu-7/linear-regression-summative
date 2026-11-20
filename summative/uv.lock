@@ -1809,6 +1809,7 @@ name = "summative"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "cycler" },
     { name = "fastapi" },
     { name = "joblib" },
     { name = "numpy" },
@@ -1829,6 +1830,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cycler", specifier = ">=0.12.1" },
     { name = "fastapi", specifier = ">=0.162.7" },
     { name = "joblib", specifier = ">=1.6.0" },
     { name = "numpy", specifier = ">=2.5.4" },
