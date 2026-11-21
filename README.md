@@ -2,7 +2,10 @@
 
 ## 1. Mission and Problem
 
-My mission is to help smallholder farmers in Africa make better farming decisions by predictions their expected crop yields. Many farmers struggle to estimate how much they will harvest making it difficult to plan their farming activities and resources. I developed this model that predicts crop yield (tonnes per hectare) using details such as country, crop type, season, planting and harvesting months, year, farming system and cultivated area. The system delivers predictions via FastAPI backend and Flutter app.
+My mission is to help smallholder farmers in Africa plan better by predicting their expected crop yield.
+Many farmers struggle to estimate how much they will harvest, which makes planning farming activities and resources difficult.
+I built a model that predicts yield (tonnes per hectare) from country, crop, season, farming system, planting and harvest months, year and area.
+Predictions are delivered through a FastAPI backend and a Flutter mobile app.
 
 ## 2. Dataset
 
@@ -26,20 +29,20 @@ The target variable is yield which represents the crop yield in tonnes per hecta
 
 The API is publicly avaliable through Swagger UI where you can test the prediction and retraining endpoints.
 
-Test the API here: ** **
+Test the API here: ** https://crop-yield-api-ai2s.onrender.com/docs
 
-- `POST / predict` returns a yield prediction. Example input: Rwanda, Maize, Season A, production system `none`, planting month 9, harvest month 1, harvest year 2026, area 1500.
+- `POST /predict` returns a yield prediction. Example input: Rwanda, Maize, Season A, production system `none`, planting month 9, harvest month 1, harvest year 2026, area 1500.
 - `POST /retrain` accepts a CSV file and retrains the model on the original data plus the new rows.
 
 > The API runs on Render's free tier so the first request after a period of inactivity can take about 50 seconds.
 
 ## 4. Video Demo
 
-Watch the demo on Youtube: ** **
+Watch the demo on YouTube: ** **
 
 ## 5. How to run the mobile app
 
-**Requirements:** [Flutter SDK] (https://docs.flutter.dev/get-started/install), Android Studio (or the Android SDK platform-tools) and an Android phone with USB debugging enabled (or an emulator).
+**Requirements:** [Flutter SDK](https://docs.flutter.dev/get-started/install), Android Studio (or the Android SDK platform-tools) and an Android phone with USB debugging enabled (or an emulator).
 
 1. Clone the repository:
    ```bash
