@@ -1,20 +1,17 @@
 import os
 import joblib
 import pandas as pd
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
-from sklearn.linear_model import SGDRegressor
+
+from retrain import FEATURES, MAX_AREA, MAX_YEAR, MIN_YEAR, retrain_model
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "best_model.pkl")
 TRAIN_PATH = os.path.join(BASE_DIR, "train_data.csv")
 
 pipeline = joblib.load(MODEL_PATH)
-
-FEATURES = ["country", "product", "season_name", "crop_production_system",
-            "planting_month", "harvest_month", "harvest_year", "area"]
-TARGET = "yield"
 
 ALLOWED = {
     "country": ['Angola', 'Benin', 'Burkina Faso', 'Burundi', 'Cameroon',
@@ -48,8 +45,6 @@ ALLOWED = {
                                'Rainfed (PS)', 'irrigated', 'none'],
 }
 
-MIN_YEAR, MAX_YEAR = 1995, 2035
-MAX_AREA = 5000000
 
 class PredictionInput(BaseModel):
     country: str = Field(..., description="Country name, e.g. Rwanda")
@@ -86,6 +81,7 @@ class PredictionInput(BaseModel):
         }
     }
 
+
 app = FastAPI(title="Crop Yield Prediction API")
 
 app.add_middleware(
@@ -100,9 +96,11 @@ app.add_middleware(
     allow_credentials=False,
 )
 
+
 @app.get("/")
 def home():
     return {"message": "Crop Yield Prediction API is running. Open /docs to try it."}
+
 
 @app.post("/predict")
 def predict(data: PredictionInput):
@@ -113,109 +111,10 @@ def predict(data: PredictionInput):
 
     return {"predicted_yield_t_per_ha": round(prediction, 2)}
 
+
 @app.post("/retrain")
 def retrain(file: UploadFile = File(...)):
     global pipeline
-
-    # 1. Check uploaded file
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(
-            status_code=400,
-            detail="Please upload a .csv file."
-        )
-
-    try:
-        new_data = pd.read_csv(file.file)
-    except Exception:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not read the CSV file."
-        )
-
-    # 2. Check required columns
-    needed = FEATURES + [TARGET]
-    missing = [col for col in needed if col not in new_data.columns]
-
-    if missing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Missing columns: {missing}"
-        )
-
-    # 3. Clean uploaded data
-    new_data = new_data[needed].copy()
-
-    for col in ["planting_month", "harvest_month", "harvest_year", "area", "yield"]:
-        new_data[col] = pd.to_numeric(new_data[col], errors="coerce")
-
-    new_data = new_data.dropna()
-
-    new_data = new_data[
-        (new_data["yield"] > 0)
-        & (new_data["yield"] <= 50)
-        & (new_data["area"] > 0)
-        & (new_data["area"] <= MAX_AREA)
-        & new_data["planting_month"].between(1, 12)
-        & new_data["harvest_month"].between(1, 12)
-        & new_data["harvest_year"].between(MIN_YEAR, MAX_YEAR)
-    ]
-
-    if len(new_data) == 0:
-        raise HTTPException(
-            status_code=400,
-            detail="No valid rows found in the uploaded CSV."
-        )
-
-    # 4. Load original training data
-    if not os.path.exists(TRAIN_PATH):
-        raise HTTPException(
-            status_code=500,
-            detail="Original training data not found."
-        )
-
-    try:
-        old_data = pd.read_csv(TRAIN_PATH)
-        combined = pd.concat(
-            [old_data[needed], new_data],
-            ignore_index=True
-        )
-
-        # 5. Create a fresh model pipeline and retrain
-        from sklearn.base import clone
-
-        new_pipeline = clone(pipeline)
-
-        new_pipeline.fit(
-            combined[FEATURES],
-            combined[TARGET]
-        )
-
-        # 6. Save the newly trained model
-        temp_model_path = MODEL_PATH + ".tmp"
-        joblib.dump(new_pipeline, temp_model_path, compress=3)
-        os.replace(temp_model_path, MODEL_PATH)
-
-        # 7. Update training dataset
-        temp_data_path = TRAIN_PATH + ".tmp"
-        combined.to_csv(temp_data_path, index=False)
-        os.replace(temp_data_path, TRAIN_PATH)
-
-        # 8. Update active pipeline
-        pipeline = new_pipeline
-
-        return {
-            "message": "Model retrained and saved successfully.",
-            "model_type": type(new_pipeline.named_steps["model"]).__name__,
-            "method": "Full retraining on original data + new uploaded data",
-            "original_rows": len(old_data),
-            "new_rows_used": len(new_data),
-            "total_training_rows": len(combined)
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Retraining failed: {str(e)}"
-        )
+    new_pipeline, result = retrain_model(file, pipeline, MODEL_PATH, TRAIN_PATH)
+    pipeline = new_pipeline
+    return result
