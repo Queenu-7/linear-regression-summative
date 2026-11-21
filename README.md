@@ -19,8 +19,8 @@ The dataset used in this project contains **10,000 records** covering **31 Afric
 
 The target variable is yield which represents the crop yield in tonnes per hectare (t/ha).
 
-- **Source:**
-- **Link:**
+- **Source:** Africa Crop Yield dataset by CircuitNotion on Hugging Face
+- **Link:** https://huggingface.co/datasets/CircuitNotion/africa-crop-yield     
 
 ## 3. Public API (Swagger UI)
 
