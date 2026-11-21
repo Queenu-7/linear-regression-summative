@@ -42,8 +42,28 @@ Watch the demo on Youtube: ** **
 **Requirements:** [Flutter SDK] ()
 
 1. Clone the repository:
+   ```bash
+   git clone https://github.com/Queenu-7/linear-regression-summative.git
+   ```
 2. Open the flutter app folder:
+   ```bash
+   cd linear-regression-summative/summative/FlutterApp
+   ```
 3. Install the dependencies:
+   ```bash
+   flutter pub get
+   ```
+4. Connect your phone with USB (or start an emulator) and check that it is detected:
+   ```bash
+   flutter devices
+   ```
+5. Run the app:
+   ```bash
+   flutter run
+   ```
+6. In the app enter the farm details (EX: Rwanda, Maize, Season A, 1500 hectares) and tap **Predict**. the App sends the requests to the deployed API and shows the predicted yield.
+
+This app calls `` so it needs an internet connection. The first prediction may be slow while the server wakes up.
 
 
 
