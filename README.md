@@ -9,17 +9,6 @@ Predictions are delivered through a FastAPI backend and a Flutter mobile app.
 
 ## 2. Dataset
 
-# Crop Yield Prediction System
-
-## 1. Mission and Problem
-
-My mission is to help smallholder farmers in Africa plan better by predicting their expected crop yield.
-Many farmers struggle to estimate how much they will harvest, which makes planning farming activities and resources difficult.
-I built a model that predicts yield (tonnes per hectare) from country, crop, season, farming system, planting and harvest months, year and area.
-Predictions are delivered through a FastAPI backend and a Flutter mobile app.
-
-## 2. Dataset
-
 The original file (`hvstat_africa_data_v1.0.csv`) has **203,125 records**. After cleaning (removing missing, zero or negative values, yields above 50 t/ha, years before 1995 and areas above 5,000,000 ha) **159,999 records** remained, and a sample of **10,000 records** was used to train the model. The data covers **31 African countries** and different crop types. It includes 8 input features:
 
 - country
