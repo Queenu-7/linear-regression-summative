@@ -22,6 +22,30 @@ The target variable is yield which represents the crop yield in tonnes per hecta
 - **Source:**
 - **Link:**
 
+## 3. Public API (Swagger UI)
+
+The API is publicly avaliable through Swagger UI where you can test the prediction and retraining endpoints.
+
+Test the API here: ** **
+
+- `POST / predict` returns a yield prediction. Example input: Rwanda, Maize, Season A, production system `none`, planting month 9, harvest month 1, harvest year 2026, area 1500.
+- `POST /retrain` accepts a CSV file and retrains the model on the original data plus the new rows.
+
+> The API runs on Render's free tier so the first request after a period of inactivity can take about 50 seconds.
+
+## 4. Video Demo
+
+Watch the demo on Youtube: ** **
+
+## 5. How to run the mobile app
+
+**Requirements:** [Flutter SDK] ()
+
+1. Clone the repository:
+2. Open the flutter app folder:
+3. Install the dependencies:
+
+
 
 
 
