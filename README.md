@@ -66,7 +66,7 @@ Watch the demo on YouTube: ** **
    ```
 6. In the app enter the farm details (EX: Rwanda, Maize, Season A, 1500 hectares) and tap **Predict**. the App sends the requests to the deployed API and shows the predicted yield.
 
-This app calls `` so it needs an internet connection. The first prediction may be slow while the server wakes up.
+This app calls `https://crop-yield-api-ai2s.onrender.com/predict` so it needs an internet connection. The first prediction may be slow while the server wakes up.
 
 
 
