@@ -39,7 +39,7 @@ Watch the demo on Youtube: ** **
 
 ## 5. How to run the mobile app
 
-**Requirements:** [Flutter SDK] ()
+**Requirements:** [Flutter SDK] (https://docs.flutter.dev/get-started/install), Android Studio (or the Android SDK platform-tools) and an Android phone with USB debugging enabled (or an emulator).
 
 1. Clone the repository:
    ```bash
